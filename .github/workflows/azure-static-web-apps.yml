@@ -35,6 +35,15 @@ jobs:
           NEXT_PUBLIC_AZURE_AD_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_AZURE_AD_CLIENT_ID }}
           NEXT_PUBLIC_AZURE_AD_TENANT_ID: ${{ secrets.NEXT_PUBLIC_AZURE_AD_TENANT_ID }}
 
+      - name: List build output
+        run: |
+          echo "Contents of the current directory:"
+          ls -la
+          echo "\nContents of the out directory:"
+          ls -la out || echo "out directory not found"
+          echo "\nContents of the .next directory:"
+          ls -la .next || echo ".next directory not found"
+
       - name: Deploy
         id: deploy
         uses: Azure/static-web-apps-deploy@v1
@@ -42,12 +51,13 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AGREEABLE_COAST_0F8E6080F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/"
-          output_location: "out"  # Changed from .next to out since we're using export
-          skip_app_build: true    # Skip build since we already built it
+          app_location: "out"  # Changed from "/" to "out"
+          output_location: ""   # Changed since we're deploying directly from the out directory
+          skip_app_build: true
           deployment_environment: production
           production_branch: "main"
-          api_location: ""        # No API location since it's frontend only
+          api_location: ""
+          is_static_export: true
 
       - name: Check Deployment Status
         if: steps.deploy.outcome == 'failure'
@@ -68,4 +78,4 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_AGREEABLE_COAST_0F8E6080F }}
           action: "close"
-          app_location: "/" 
+          app_location: "out"  # Changed to match the deployment configuration 
