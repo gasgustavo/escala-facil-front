@@ -1,7 +1,7 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*", "/css/*", "/js/*", "/api/*", "/_next/*"]
+    "exclude": ["/images/*", "/css/*", "/js/*", "/api/*", "/_next/*", "/*.{png,jpg,gif,svg,js,css,woff,woff2,gz}"]
   },
   "routes": [
     {
@@ -12,6 +12,31 @@
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
       }
+    },
+    {
+      "route": "/_next/*",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*.{js,css,png,jpg,gif,svg,woff,woff2,gz}",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
     }
-  ]
+  ],
+  "globalHeaders": {
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: *.azurestaticapps.net *.azure.com; img-src 'self' data: blob: *.azurestaticapps.net; connect-src 'self' *.azurestaticapps.net *.azure.com",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block"
+  },
+  "mimeTypes": {
+    ".gz": "application/gzip",
+    ".js.gz": "application/javascript",
+    ".css.gz": "text/css",
+    ".woff": "application/font-woff",
+    ".woff2": "font/woff2"
+  }
 } 

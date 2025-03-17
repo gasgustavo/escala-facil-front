@@ -9,12 +9,15 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002', 'agreeable-coast-0f8e6080f.azurestaticapps.net']
     }
   },
-  output: 'standalone',
+  output: 'export',
   images: {
     unoptimized: true,
   },
   // Enable static exports
   trailingSlash: true,
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
   // Configure base path if needed
   // basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
 }
