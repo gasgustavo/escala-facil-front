@@ -17,21 +17,15 @@ export default function CompanyRegistration() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('/api/companies', {
-        headers: {
-          'x-user-id': 'mock-user-id', // This will be replaced with the actual user ID from Azure AD B2C
-        },
-      });
-      
+      const response = await fetch('/api/companies');
       if (!response.ok) {
-        throw new Error('Erro ao buscar empresas');
+        throw new Error('Failed to fetch companies');
       }
-
       const data = await response.json();
       setCompanies(data);
     } catch (error) {
-      setError('Erro ao carregar empresas');
-      console.error('Erro:', error);
+      console.error('Error fetching companies:', error);
+      setError('Failed to load companies');
     }
   };
 
@@ -41,7 +35,7 @@ export default function CompanyRegistration() {
     setSuccess(null);
 
     if (!newCompanyName.trim()) {
-      setError('O nome da empresa é obrigatório');
+      setError('Company name is required');
       return;
     }
 
@@ -51,28 +45,27 @@ export default function CompanyRegistration() {
         const updatedCompanies = await api.companies.list();
         setCompanies(updatedCompanies);
         setNewCompanyName('');
-        setSuccess('Empresa criada com sucesso!');
+        setSuccess('Company created successfully!');
       }
     } catch (error) {
-      setError('Erro ao criar empresa');
+      setError('Error creating company');
       console.error('Error creating company:', error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta empresa?')) {
-      return;
-    }
+    setError(null);
+    setSuccess(null);
 
     try {
       const response = await api.companies.delete(id);
       if (response) {
         const updatedCompanies = await api.companies.list();
         setCompanies(updatedCompanies);
-        setSuccess('Empresa excluída com sucesso!');
+        setSuccess('Company deleted successfully!');
       }
     } catch (error) {
-      setError('Erro ao excluir empresa');
+      setError('Error deleting company');
       console.error('Error deleting company:', error);
     }
   };
@@ -80,7 +73,7 @@ export default function CompanyRegistration() {
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Cadastro de Empresas</h1>
+        <h1 className="text-3xl font-bold mb-8">Company Registration</h1>
 
         <form onSubmit={handleSubmit} className="mb-8">
           <div className="flex gap-4">
@@ -88,14 +81,14 @@ export default function CompanyRegistration() {
               type="text"
               value={newCompanyName}
               onChange={(e) => setNewCompanyName(e.target.value)}
-              placeholder="Nome da empresa"
-              className="flex-1 p-2 border border-gray-300 rounded"
+              placeholder="Enter company name"
+              className="flex-1 p-2 border rounded"
             />
             <button
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              Adicionar Empresa
+              Add Company
             </button>
           </div>
         </form>
@@ -112,39 +105,34 @@ export default function CompanyRegistration() {
           </div>
         )}
 
-        <div className="bg-white shadow-md rounded my-6">
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="min-w-full">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="text-left py-3 px-4 font-semibold">Nome</th>
-                <th className="text-left py-3 px-4 font-semibold">Data de Criação</th>
-                <th className="text-right py-3 px-4 font-semibold">Ações</th>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {companies.map((company) => (
-                <tr key={company.id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 px-4">{company.name}</td>
-                  <td className="py-3 px-4">
-                    {new Date(company.createdAt).toLocaleDateString('pt-BR')}
+                <tr key={company.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {company.name}
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleDelete(company.id)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-600 hover:text-red-900"
                     >
-                      Excluir
+                      Delete
                     </button>
                   </td>
                 </tr>
               ))}
-              {companies.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="py-4 px-4 text-center text-gray-500">
-                    Nenhuma empresa cadastrada
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

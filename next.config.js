@@ -4,20 +4,19 @@ const nextConfig = {
     AZURE_STORAGE_CONNECTION_STRING: process.env.AZURE_STORAGE_CONNECTION_STRING,
     AZURE_STORAGE_CONTAINER_NAME: process.env.AZURE_STORAGE_CONTAINER_NAME,
   },
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'localhost:3001', 'localhost:3002', 'agreeable-coast-0f8e6080f.azurestaticapps.net']
-    }
-  },
   output: 'export',
   images: {
     unoptimized: true,
   },
-  // Enable static exports
   trailingSlash: true,
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  distDir: 'out',
+  // Disable static optimization for authenticated pages
+  experimental: {
+    // Remove any experimental features that might conflict with static export
+  },
   // Configure base path if needed
   // basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
 }
