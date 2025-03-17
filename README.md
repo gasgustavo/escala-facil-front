@@ -95,3 +95,22 @@ This project uses several Azure services:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+1. Initial Access:
+   User visits /empresas → ProtectedRoute checks auth status
+
+2. If Not Authenticated:
+   - ProtectedRoute triggers login()
+   - Redirects to /login
+   - staticwebapp.config.json rewrites to /.auth/login/aad
+   - Azure AD login page appears
+
+3. After Successful Login:
+   - Azure AD redirects back to your app
+   - Azure Static Web Apps creates a session
+   - User is redirected to original page
+
+4. Subsequent Requests:
+   - /.auth/me endpoint returns user info
+   - AuthProvider updates isAuthenticated state
+   - Protected content is displayed

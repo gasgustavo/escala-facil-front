@@ -11,11 +11,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, loading, login } = useAuth();
 
   useEffect(() => {
+    // If not loading and not authenticated, redirect to Azure AD login
     if (!loading && !isAuthenticated) {
-      login();
+      window.location.href = '/.auth/login/aad';
     }
-  }, [loading, isAuthenticated, login]);
+  }, [loading, isAuthenticated]);
 
+  // Show loading spinner while checking auth status
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,5 +26,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
+  // If authenticated, show the protected content
   return isAuthenticated ? <>{children}</> : null;
 } 

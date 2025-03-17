@@ -49,11 +49,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = () => {
-    window.location.href = '/login';
+    // Direct redirect to Azure AD login
+    window.location.href = '/.auth/login/aad';
   };
 
-  const logout = () => {
-    window.location.href = '/logout';
+  const logout = async () => {
+    try {
+      // Call the logout endpoint
+      await fetch('/.auth/logout');
+      // Clear the auth state
+      setIsAuthenticated(false);
+      setUser(null);
+      // Redirect to home page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   return (
