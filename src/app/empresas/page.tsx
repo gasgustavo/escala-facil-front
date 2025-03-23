@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Company } from '@/types';
 import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-export default function EmpresasPage() {
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [newCompany, setNewCompany] = useState({ name: '', cnpj: '' });
-  const { user } = useAuth();
+export default function CompanyRegistration() {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [newCompanyName, setNewCompanyName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCompanies();
@@ -17,66 +17,126 @@ export default function EmpresasPage() {
 
   const fetchCompanies = async () => {
     try {
-      setLoading(true);
-      const data = await api.companies.list();
+      const response = await fetch('/api/companies');
+      if (!response.ok) {
+        throw new Error('Failed to fetch companies');
+      }
+      const data = await response.json();
       setCompanies(data);
-    } catch (err) {
-      setError('Failed to fetch companies');
-      console.error('Error fetching companies:', err);
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      setError('Failed to load companies');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!newCompanyName.trim()) {
+      setError('Company name is required');
+      return;
+    }
+
     try {
-      await api.companies.create(newCompany);
-      setNewCompany({ name: '', cnpj: '' });
-      fetchCompanies();
-    } catch (err) {
-      setError('Failed to create company');
-      console.error('Error creating company:', err);
+      const response = await api.companies.create({ name: newCompanyName });
+      if (response) {
+        const updatedCompanies = await api.companies.list();
+        setCompanies(updatedCompanies);
+        setNewCompanyName('');
+        setSuccess('Company created successfully!');
+      }
+    } catch (error) {
+      setError('Error creating company');
+      console.error('Error creating company:', error);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  const handleDelete = async (id: string) => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await api.companies.delete(id);
+      if (response) {
+        const updatedCompanies = await api.companies.list();
+        setCompanies(updatedCompanies);
+        setSuccess('Company deleted successfully!');
+      }
+    } catch (error) {
+      setError('Error deleting company');
+      console.error('Error deleting company:', error);
+    }
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Companies</h1>
-      
-      <form onSubmit={handleSubmit} className="mb-8">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Company Name"
-            value={newCompany.name}
-            onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
-            className="border p-2 rounded"
-          />
-          <input
-            type="text"
-            placeholder="CNPJ"
-            value={newCompany.cnpj}
-            onChange={(e) => setNewCompany({ ...newCompany, cnpj: e.target.value })}
-            className="border p-2 rounded"
-          />
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-            Add Company
-          </button>
-        </div>
-      </form>
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Company Registration</h1>
 
-      <div className="grid gap-4">
-        {companies.map((company: any) => (
-          <div key={company.id} className="border p-4 rounded">
-            <h2 className="font-bold">{company.name}</h2>
-            <p>CNPJ: {company.cnpj}</p>
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="flex gap-4">
+            <input
+              type="text"
+              value={newCompanyName}
+              onChange={(e) => setNewCompanyName(e.target.value)}
+              placeholder="Enter company name"
+              className="flex-1 p-2 border rounded"
+            />
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Add Company
+            </button>
           </div>
-        ))}
+        </form>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {success}
+          </div>
+        )}
+
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {companies.map((company) => (
+                <tr key={company.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {company.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button
+                      onClick={() => handleDelete(company.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 } 
