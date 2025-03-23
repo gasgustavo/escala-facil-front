@@ -7,6 +7,7 @@ interface ClientPrincipal {
   userId: string;
   userDetails: string;
   userRoles: string[];
+  accessToken?: string; // Add this line
 }
 
 interface AuthContextType {
@@ -15,14 +16,17 @@ interface AuthContextType {
   login: () => void;
   logout: () => void;
   loading: boolean;
+  getAccessToken: () => string | undefined; // Add this line
 }
 
+// Update the context default value
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
   login: () => {},
   logout: () => {},
   loading: true,
+  getAccessToken: () => undefined, // Add this line
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -86,9 +90,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getAccessToken = () => {
+    console.log('user data test:', user); //TODO REMOVE
+    return user?.accessToken;
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
-      {children}
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading, getAccessToken }}>
+        {children}
     </AuthContext.Provider>
   );
 }
