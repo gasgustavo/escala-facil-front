@@ -54,8 +54,8 @@
           "clientSecretSettingName": "AZURE_AD_CLIENT_SECRET"
         },
         "userDetailsClaim": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
-        "scope": ["openid", "profile", "email", "offline_access", "api://${AZURE_AD_CLIENT_ID}/user_impersonation"]
-
+        "scope": ["openid", "profile", "email", "offline_access"],
+        "requireToken": true
       }
     },
     "rolesSource": "/.auth/me",
