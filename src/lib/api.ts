@@ -1,8 +1,9 @@
 // API utility functions
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${API_BASE_URL}${endpoint}?code=${API_KEY}`;
   const response = await fetch(url, {
     ...options,
     headers: {
