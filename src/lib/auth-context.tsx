@@ -1,12 +1,13 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any | null;
   login: () => void;
   logout: () => void;
+  getAuthToken: () => Promise<string | null>;
   loading: boolean;
 }
 
@@ -15,8 +16,24 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   login: () => {},
   logout: () => {},
+  getAuthToken: async () => null,
   loading: true,
 });
+
+export async function getAuthToken() {
+  try {
+    const response = await fetch('/.auth/me');
+    const data = await response.json();
+    
+    if (data.clientPrincipal) {
+      return data.clientPrincipal.accessToken;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -68,12 +85,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, getAuthToken, loading }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 } 

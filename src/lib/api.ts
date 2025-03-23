@@ -1,14 +1,20 @@
+import { getAuthToken } from './auth-context';
+
 // API utility functions
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
+export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
+  const token = await getAuthToken();
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -22,33 +28,47 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 export const api = {
   // Workers endpoints
   workers: {
-    list: () => apiFetch('/workers'),
-    create: (data: any) => apiFetch('/workers', {
+    list: () => fetchWithAuth('/workers'),
+    create: (data: any) => fetchWithAuth('/workers', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => apiFetch(`/workers/${id}`, {
+    update: (id: string, data: any) => fetchWithAuth(`/workers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
-    delete: (id: string) => apiFetch(`/workers/${id}`, {
+    delete: (id: string) => fetchWithAuth(`/workers/${id}`, {
       method: 'DELETE',
     }),
   },
 
   // Companies endpoints
   companies: {
-    list: () => apiFetch('/companies'),
-    create: (data: any) => apiFetch('/companies', {
+    list: () => fetchWithAuth('/companies'),
+    create: (data: any) => fetchWithAuth('/companies', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => apiFetch(`/companies/${id}`, {
+    update: (id: string, data: any) => fetchWithAuth(`/companies/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
-    delete: (id: string) => apiFetch(`/companies/${id}`, {
+    delete: (id: string) => fetchWithAuth(`/companies/${id}`, {
       method: 'DELETE',
     }),
   },
+
+  // Employees
+  getEmployees: () => fetchWithAuth('/employees'),
+  createEmployee: (data: any) => fetchWithAuth('/employees', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  updateEmployee: (id: string, data: any) => fetchWithAuth(`/employees/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteEmployee: (id: string) => fetchWithAuth(`/employees/${id}`, {
+    method: 'DELETE',
+  }),
 }; 
