@@ -17,7 +17,7 @@ export default function CompanyRegistration() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('/api/companies');
+      const response = await api.companies.list();;
       if (!response.ok) {
         throw new Error('Failed to fetch companies');
       }
