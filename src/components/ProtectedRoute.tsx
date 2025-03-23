@@ -8,8 +8,8 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, login } = useAuth();
-
+  const { isAuthenticated, loading, login, getAccessToken } = useAuth();
+  console.log('getAccessToken test:', getAccessToken()); //TODO REMOVE
   useEffect(() => {
     const checkAndRedirect = async () => {
       // Only redirect if we're sure we're not authenticated
