@@ -2,9 +2,16 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
+interface ClientPrincipal {
+  identityProvider: string;
+  userId: string;
+  userDetails: string;
+  userRoles: string[];
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any | null;
+  user: ClientPrincipal | null;
   login: () => void;
   logout: () => void;
   loading: boolean;
@@ -20,7 +27,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<ClientPrincipal | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      if (process.env.NEXT_PUBLIC_IS_LOCAL === 'true') {
+        // Mock authenticated user
+        setIsAuthenticated(true);
+        setUser({
+          identityProvider: 'aad',
+          userId: 'mock-user-id',
+          userDetails: 'mock@user.com',
+          userRoles: ['authenticated']
+        });
+        setLoading(false);
+        return;
+      }
       const response = await fetch('/.auth/me');
       const data = await response.json();
       
