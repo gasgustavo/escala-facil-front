@@ -17,11 +17,8 @@ export default function CompanyRegistration() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await api.companies.list();;
-      if (!response.ok) {
-        throw new Error('Failed to fetch companies');
-      }
-      const data = await response.json();
+      const data = await api.companies.list();
+      console.log('data', data)
       setCompanies(data);
     } catch (error) {
       console.error('Error fetching companies:', error);
@@ -73,7 +70,7 @@ export default function CompanyRegistration() {
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Company Registration</h1>
+        <h1 className="text-3xl font-bold mb-8">Cadastro de Empresas</h1>
 
         <form onSubmit={handleSubmit} className="mb-8">
           <div className="flex gap-4">
@@ -81,14 +78,14 @@ export default function CompanyRegistration() {
               type="text"
               value={newCompanyName}
               onChange={(e) => setNewCompanyName(e.target.value)}
-              placeholder="Enter company name"
+              placeholder="Digite o nome da empresa"
               className="flex-1 p-2 border rounded"
             />
             <button
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              Add Company
+              Adicionar Empresa
             </button>
           </div>
         </form>
@@ -110,10 +107,10 @@ export default function CompanyRegistration() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
+                  Nome
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Ações
                 </th>
               </tr>
             </thead>
@@ -128,7 +125,7 @@ export default function CompanyRegistration() {
                       onClick={() => handleDelete(company.id)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      Delete
+                      Excluir
                     </button>
                   </td>
                 </tr>
