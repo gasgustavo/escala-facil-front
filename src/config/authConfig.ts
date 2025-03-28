@@ -41,5 +41,5 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest = {
-    scopes: ["https://agreeable-coast-0f8e6080f-production.eastus2.6.azurestaticapps.net/.default"]
+    scopes: ["User.Read"]
 }; 
