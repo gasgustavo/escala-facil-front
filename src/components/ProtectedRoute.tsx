@@ -37,12 +37,20 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           } catch (silentError) {
             console.error('Silent token acquisition failed:', silentError);
             if (inProgress === InteractionStatus.None) {
-              await instance.loginPopup(loginRequest);
+              const response = await instance.loginPopup(loginRequest);
+              if (response?.accessToken) {
+                localStorage.setItem('accessToken', response.accessToken);
+                setIsAuthenticated(true);
+              }
             }
           }
         } else {
           if (inProgress === InteractionStatus.None) {
-            await instance.loginPopup(loginRequest);
+            const response = await instance.loginPopup(loginRequest);
+            if (response?.accessToken) {
+              localStorage.setItem('accessToken', response.accessToken);
+              setIsAuthenticated(true);
+            }
           }
         }
       } catch (error) {
