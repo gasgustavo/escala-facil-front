@@ -17,12 +17,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Only proceed if no interaction is in progress
         if (inProgress !== InteractionStatus.None) {
           return;
         }
 
-        await instance.handleRedirectPromise();
         const accounts = instance.getAllAccounts();
         
         if (accounts.length > 0) {
@@ -38,30 +36,25 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
             }
           } catch (silentError) {
             console.error('Silent token acquisition failed:', silentError);
-            // Only redirect if we're not already in the process
             if (inProgress === InteractionStatus.None) {
-              await instance.loginRedirect(loginRequest);
+              await instance.loginPopup(loginRequest);
             }
           }
         } else {
-          // Only redirect if we're not already in the process
           if (inProgress === InteractionStatus.None) {
-            await instance.loginRedirect(loginRequest);
+            await instance.loginPopup(loginRequest);
           }
         }
       } catch (error) {
         console.error('Auth error:', error);
         setIsAuthenticated(false);
       } finally {
-        // Only set loading to false if we're authenticated
-        if (isAuthenticated) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     checkAuth();
-  }, [instance, inProgress, isAuthenticated]);
+  }, [instance, inProgress]);
 
   const loadingSpinner = (
     <div className="flex items-center justify-center min-h-screen">
