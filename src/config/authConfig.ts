@@ -8,14 +8,16 @@ export const msalConfig: Configuration = {
         authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID}`,
         redirectUri: appUrl,
         postLogoutRedirectUri: appUrl,
-        navigateToLoginRequestUrl: false
+        navigateToLoginRequestUrl: true
     },
     cache: {
-        cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: false
+        cacheLocation: "localStorage",
+        storeAuthStateInCookie: true
     },
     system: {
-        allowRedirectInIframe: true,
+        windowHashTimeout: 60000,
+        iframeHashTimeout: 6000,
+        loadFrameTimeout: 0,
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {
@@ -41,5 +43,5 @@ export const msalConfig: Configuration = {
 };
 
 export const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["openid", "profile", "email"]
 }; 
