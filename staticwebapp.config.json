@@ -20,9 +20,9 @@
     }
   ],
   "globalHeaders": {
-    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: *.azurestaticapps.net *.azure.com login.microsoftonline.com *.microsoft.com; img-src 'self' data: blob: *.azurestaticapps.net; connect-src 'self' *.azurestaticapps.net *.azure.com login.microsoftonline.com *.microsoft.com",
+    "content-security-policy": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: *.azurestaticapps.net *.azure.com login.microsoftonline.com *.microsoft.com; img-src 'self' data: blob: *.azurestaticapps.net; connect-src 'self' *.azurestaticapps.net *.azure.com login.microsoftonline.com *.microsoft.com; frame-src 'self' login.microsoftonline.com *.microsoft.com",
     "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
+    "X-Frame-Options": "SAMEORIGIN",
     "X-XSS-Protection": "1; mode=block"
   },
   "mimeTypes": {
