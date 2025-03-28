@@ -1,27 +1,60 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useEffect, useState } from 'react';
+import { useMsal } from '@azure/msal-react';
+import { loginRequest } from '@/config/authConfig';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading, login, getAccessToken } = useAuth();
-  console.log('getAccessToken test:', getAccessToken()); //TODO REMOVE
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { instance } = useMsal();
+
   useEffect(() => {
-    const checkAndRedirect = async () => {
-      // Only redirect if we're sure we're not authenticated
-      if (!loading && !isAuthenticated) {
-        login();
+    const checkAuth = async () => {
+      try {
+        // Wait for MSAL initialization
+        await instance.initialize();
+        
+        // Check localStorage first
+        const storedToken = localStorage.getItem('accessToken');
+        if (storedToken) {
+          setIsAuthenticated(true);
+          setLoading(false);
+          return;
+        }
+
+        // If no token in localStorage, get it from MSAL
+        const accounts = instance.getAllAccounts();
+        const response = await instance.acquireTokenSilent({
+          scopes: ["User.Read"],
+          account: accounts[0]
+        });
+        
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Auth error:', error);
+        try {
+          // Try login redirect only after ensuring we can handle auth
+          await instance.handleRedirectPromise();
+          instance.loginRedirect(loginRequest);
+        } catch (redirectError) {
+          console.error('Redirect error:', redirectError);
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
-    checkAndRedirect();
-  }, [loading, isAuthenticated, login]);
+    checkAuth();
+  }, [instance]);
 
-  // Show loading spinner while checking auth status
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -30,15 +63,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // If not loading and authenticated, show the protected content
-  if (!loading && isAuthenticated) {
-    return <>{children}</>;
+  if (!isAuthenticated) {
+    return <div>Not authenticated</div>;
   }
 
-  // If not loading and not authenticated, show loading while redirecting
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-  );
+  return <>{children}</>;
 } 

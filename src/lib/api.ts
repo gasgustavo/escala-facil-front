@@ -5,16 +5,7 @@ const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint}?code=${API_KEY}`;
 
-  let authToken = ''
-  try {
-    const authResponse = await fetch('/.auth/me')
-    const authData = await authResponse.json()
-    if (authData.clientPrincipal) {
-      authToken = authData.clientPrincipal.accessToken
-    }
-  } catch (error) {
-    console.error('Error getting auth token:', error)
-  }
+  const authToken = localStorage.getItem('accessToken') || '';
 
   const response = await fetch(url, {
     ...options,
