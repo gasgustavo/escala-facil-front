@@ -5,7 +5,9 @@ import { PublicClientApplication } from '@azure/msal-browser';
 import { msalConfig } from '@/config/authConfig';
 import Link from 'next/link';
 
+// Initialize MSAL outside of component
 const msalInstance = new PublicClientApplication(msalConfig);
+msalInstance.initialize().catch(console.error);
 
 export default function ClientProvider({
   children,
