@@ -1,20 +1,45 @@
-export const msalConfig = {
+import { Configuration, LogLevel } from "@azure/msal-browser";
+
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+export const msalConfig: Configuration = {
     auth: {
         clientId: process.env.NEXT_PUBLIC_AZURE_AD_CLIENT_ID || "",
         authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_AZURE_AD_TENANT_ID}`,
-        redirectUri: process.env.NEXT_PUBLIC_REDIRECT_URI || "http://localhost:3000",
-        postLogoutRedirectUri: "http://localhost:3000",
-        navigateToLoginRequestUrl: true
+        redirectUri: appUrl,
+        postLogoutRedirectUri: appUrl,
+        navigateToLoginRequestUrl: false
     },
     cache: {
-        cacheLocation: "localStorage",
-        storeAuthStateInCookie: true
+        cacheLocation: "sessionStorage",
+        storeAuthStateInCookie: false
+    },
+    system: {
+        allowRedirectInIframe: true,
+        loggerOptions: {
+            loggerCallback: (level, message, containsPii) => {
+                if (containsPii) {
+                    return;
+                }
+                switch (level) {
+                    case LogLevel.Error:
+                        console.error(message);
+                        return;
+                    case LogLevel.Info:
+                        console.info(message);
+                        return;
+                    case LogLevel.Verbose:
+                        console.debug(message);
+                        return;
+                    case LogLevel.Warning:
+                        console.warn(message);
+                        return;
+                }
+            }
+        }
     }
 };
 
 export const loginRequest = {
-    scopes: [
-        "api://8a744b69-107f-4d9f-a3f8-a506c4024b75/access_as_user",
-        "User.Read"
-    ]
+    scopes: ["https://agreeable-coast-0f8e6080f-production.eastus2.6.azurestaticapps.net/.default"]
 }; 
