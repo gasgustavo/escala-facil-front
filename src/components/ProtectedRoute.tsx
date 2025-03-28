@@ -17,12 +17,16 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (inProgress !== InteractionStatus.None) {
+        // Handle redirect promise first
+        const result = await instance.handleRedirectPromise();
+        if (result?.accessToken) {
+          localStorage.setItem('accessToken', result.accessToken);
+          setIsAuthenticated(true);
+          setLoading(false);
           return;
         }
 
         const accounts = instance.getAllAccounts();
-        
         if (accounts.length > 0) {
           try {
             const response = await instance.acquireTokenSilent({
@@ -36,22 +40,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
             }
           } catch (silentError) {
             console.error('Silent token acquisition failed:', silentError);
-            if (inProgress === InteractionStatus.None) {
-              const response = await instance.loginPopup(loginRequest);
-              if (response?.accessToken) {
-                localStorage.setItem('accessToken', response.accessToken);
-                setIsAuthenticated(true);
-              }
-            }
+            instance.loginRedirect(loginRequest);
           }
         } else {
-          if (inProgress === InteractionStatus.None) {
-            const response = await instance.loginPopup(loginRequest);
-            if (response?.accessToken) {
-              localStorage.setItem('accessToken', response.accessToken);
-              setIsAuthenticated(true);
-            }
-          }
+          instance.loginRedirect(loginRequest);
         }
       } catch (error) {
         console.error('Auth error:', error);
@@ -62,7 +54,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     };
 
     checkAuth();
-  }, [instance, inProgress]);
+  }, [instance]);
 
   const loadingSpinner = (
     <div className="flex items-center justify-center min-h-screen">
