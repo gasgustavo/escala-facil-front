@@ -16,8 +16,8 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Wait for MSAL initialization
-        await instance.initialize();
+        // First handle any redirects
+        await instance.handleRedirectPromise();
         
         // Check localStorage first
         const storedToken = localStorage.getItem('accessToken');
@@ -29,24 +29,27 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
         // If no token in localStorage, get it from MSAL
         const accounts = instance.getAllAccounts();
-        const response = await instance.acquireTokenSilent({
-          scopes: ["User.Read"],
-          account: accounts[0]
-        });
-        
-        if (response.accessToken) {
-          localStorage.setItem('accessToken', response.accessToken);
-          setIsAuthenticated(true);
+        if (accounts.length > 0) {
+          try {
+            const response = await instance.acquireTokenSilent({
+              ...loginRequest,
+              account: accounts[0]
+            });
+            
+            if (response.accessToken) {
+              localStorage.setItem('accessToken', response.accessToken);
+              setIsAuthenticated(true);
+            }
+          } catch (silentError) {
+            // If silent token acquisition fails, try redirect
+            instance.loginRedirect(loginRequest);
+          }
+        } else {
+          // No accounts found, redirect to login
+          instance.loginRedirect(loginRequest);
         }
       } catch (error) {
         console.error('Auth error:', error);
-        try {
-          // Try login redirect only after ensuring we can handle auth
-          await instance.handleRedirectPromise();
-          instance.loginRedirect(loginRequest);
-        } catch (redirectError) {
-          console.error('Redirect error:', redirectError);
-        }
       } finally {
         setLoading(false);
       }
@@ -67,5 +70,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <div>Not authenticated</div>;
   }
 
-  return <>{children}</>;
+  return <div key={isAuthenticated.toString()}>{children}</div>;
 } 

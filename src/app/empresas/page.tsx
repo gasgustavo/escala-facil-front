@@ -11,10 +11,6 @@ export default function CompanyRegistration() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
   const fetchCompanies = async () => {
     try {
       const data = await api.companies.list();
@@ -25,6 +21,10 @@ export default function CompanyRegistration() {
       setError('Failed to load companies');
     }
   };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +69,7 @@ export default function CompanyRegistration() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8" onLoad={fetchCompanies}>
         <h1 className="text-3xl font-bold mb-8">Cadastro de Empresas</h1>
 
         <form onSubmit={handleSubmit} className="mb-8">
