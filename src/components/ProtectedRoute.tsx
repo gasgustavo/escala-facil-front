@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useMsal } from '@azure/msal-react';
+import { InteractionStatus } from '@azure/msal-browser';
 import { loginRequest } from '@/config/authConfig';
 
 interface ProtectedRouteProps {
@@ -11,24 +12,19 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { instance } = useMsal();
+  const { instance, inProgress } = useMsal();
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First handle any redirects
-        await instance.handleRedirectPromise();
-        
-        // Check localStorage first
-        const storedToken = localStorage.getItem('accessToken');
-        if (storedToken) {
-          setIsAuthenticated(true);
-          setLoading(false);
+        // Only proceed if no interaction is in progress
+        if (inProgress !== InteractionStatus.None) {
           return;
         }
 
-        // If no token in localStorage, get it from MSAL
+        await instance.handleRedirectPromise();
         const accounts = instance.getAllAccounts();
+        
         if (accounts.length > 0) {
           try {
             const response = await instance.acquireTokenSilent({
@@ -36,39 +32,46 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
               account: accounts[0]
             });
             
-            if (response.accessToken) {
+            if (response?.accessToken) {
               localStorage.setItem('accessToken', response.accessToken);
               setIsAuthenticated(true);
             }
           } catch (silentError) {
-            // If silent token acquisition fails, try redirect
-            instance.loginRedirect(loginRequest);
+            console.error('Silent token acquisition failed:', silentError);
+            // Only redirect if we're not already in the process
+            if (inProgress === InteractionStatus.None) {
+              await instance.loginRedirect(loginRequest);
+            }
           }
         } else {
-          // No accounts found, redirect to login
-          instance.loginRedirect(loginRequest);
+          // Only redirect if we're not already in the process
+          if (inProgress === InteractionStatus.None) {
+            await instance.loginRedirect(loginRequest);
+          }
         }
       } catch (error) {
         console.error('Auth error:', error);
+        setIsAuthenticated(false);
       } finally {
-        setLoading(false);
+        // Only set loading to false if we're authenticated
+        if (isAuthenticated) {
+          setLoading(false);
+        }
       }
     };
 
     checkAuth();
-  }, [instance]);
+  }, [instance, inProgress, isAuthenticated]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+  const loadingSpinner = (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  );
+
+  if (loading || !isAuthenticated || inProgress !== InteractionStatus.None) {
+    return loadingSpinner;
   }
 
-  if (!isAuthenticated) {
-    return <div>Not authenticated</div>;
-  }
-
-  return <div key={isAuthenticated.toString()}>{children}</div>;
+  return <>{children}</>;
 } 

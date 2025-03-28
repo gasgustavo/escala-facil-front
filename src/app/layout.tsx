@@ -1,13 +1,11 @@
-'use client';
-
 import './globals.css';
 import { Inter } from 'next/font/google';
-import { MsalProvider } from '@azure/msal-react';
-import { PublicClientApplication } from '@azure/msal-browser';
-import { msalConfig } from '@/config/authConfig';
+import { metadata } from './metadata';
+import ClientProvider from '@/components/ClientProvider';
 
 const inter = Inter({ subsets: ['latin'] });
-const msalInstance = new PublicClientApplication(msalConfig);
+
+export { metadata };
 
 export default function RootLayout({
   children,
@@ -16,10 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="icon" href="/favicon.svg" />
+      </head>
       <body className={inter.className}>
-        <MsalProvider instance={msalInstance}>
+        <ClientProvider>
           {children}
-        </MsalProvider>
+        </ClientProvider>
       </body>
     </html>
   );
