@@ -49,7 +49,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         console.error('Auth error:', error);
         setIsAuthenticated(false);
       } finally {
-        setLoading(false);
+        if (!localStorage.getItem('accessToken')) {
+          setLoading(true);
+        } else {
+          setLoading(false);
+        }
       }
     };
 
@@ -62,7 +66,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     </div>
   );
 
-  if (loading || !isAuthenticated || inProgress !== InteractionStatus.None) {
+  if (loading || !isAuthenticated || inProgress !== InteractionStatus.None || !localStorage.getItem('accessToken')) {
     return loadingSpinner;
   }
 
